@@ -1,0 +1,42 @@
+
+하드웨어 구성
+
+1. 아두이노 나노
+2. MPU 6050
+3. 측정용 버튼
+4. 블루투스 모듈 
+
+
+아두이노 나노
+Flash 32KB : 코드 저장
+SRAM 2KB   : 런타임 메모리 (programmable 한 공간은 더 작을 수 있음)
+
+================
+핀 배선도
+================
+
+
+0. 아두이노 나노 - 외부 배터리
+
+배터리->승압모듈 - 5V
+음극           - GND
+
+1. 아두이노 나노  - MPU 6050
+A4 - SDA
+A5 - SCL
+D2 - INT
+5V - VCC
+GND - GND
+
+2. 아두이노 나노 - 측정용 스위치
+D5 - 버튼 한극 - GND
+
+3. 아두이노 나노 - 블루투스 모듈
+D8 - TXD
+D11 - RXD 
+
+
+ex)
+#include <SoftwareSerial.h> 
+SoftwareSerial bluetooth(8,11);
+
