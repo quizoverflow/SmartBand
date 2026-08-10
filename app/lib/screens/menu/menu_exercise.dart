@@ -1,16 +1,16 @@
+import 'package:app/screens/utility/screen_tracking.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:app/data/DataController.dart';
 import 'package:app/utils.dart';
 
 import '../../meta/app_theme.dart';
+import '../utility/permission_handler_screen.dart';
 
 class ExerciseMenu extends StatelessWidget {
   const ExerciseMenu({
     super.key,
-    required this.onTap,
   });
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +74,14 @@ class ExerciseMenu extends StatelessWidget {
             width: double.infinity,
             height: 52,
             child: ElevatedButton(
-              onPressed: onTap,
+              onPressed: (){
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const BluetoothPermissionScreen(),
+                  )
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF00C7BE),
                 foregroundColor: Colors.white,
@@ -85,6 +92,36 @@ class ExerciseMenu extends StatelessWidget {
               ),
               child: const Text(
                 "블루투스 연결 후 시작",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 15,),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton(
+              onPressed: (){
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const TrackingScreen(),
+                    )
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00C7BE),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                "블루투스 연결없이 시작",
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
