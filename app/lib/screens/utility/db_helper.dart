@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:app/screens/utility/format.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -47,7 +48,7 @@ class DBHelper {
       'distanceKm': distanceKm,
       'pointCount': pointCount,
       'pathJson': pathJson,
-      'createdAt': DateTime.now().toIso8601String(),
+      'createdAt': formatDateTime(DateTime.now()),
     });
   }
 

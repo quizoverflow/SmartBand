@@ -273,7 +273,7 @@ class RecordTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final recordId = record['id'];
-    final dateStr = record['date']?.toString() ?? '날짜 정보 없음';
+    final dateStr = record['createdAt']?.toString() ?? '날짜 정보 없음';
     final rawDistance = record['distance'];
     final distanceStr = rawDistance != null
         ? '${(rawDistance as num).toStringAsFixed(2)} km'
