@@ -1,3 +1,9 @@
+/*
+대시보드에서 Record 를 보여주는 위젯 항목들
+
+ */
+
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -8,107 +14,153 @@ class RecordDetailTab extends StatelessWidget {
 
   const RecordDetailTab({super.key, required this.record});
 
-  @override
-  Widget build(BuildContext context) {
-    // DB의 JSON 문자열 좌표 목록을 List<LatLng> 형태로 파싱
-    final List<dynamic> pathJson = jsonDecode(record['pathJson']);
-    final List<LatLng> routePoints = pathJson.map((point) {
+  // 데이터 파싱 로직을 별도 메서드로 추출 (build 메서드 명확화)
+  List<LatLng> _parseRoutePoints(String pathJsonStr) {
+    final List<dynamic> pathJson = jsonDecode(pathJsonStr);
+    return pathJson.map((point) {
       return LatLng(
         (point['lat'] as num).toDouble(),
         (point['lng'] as num).toDouble(),
       );
     }).toList();
+  }
 
+  @override
+  Widget build(BuildContext context) {
+    final routePoints = _parseRoutePoints(record['pathJson']);
+    if (routePoints.isEmpty) {
+      return const Center(child: Text('경로 데이터가 없습니다.'));
+    }
+
+    return Column(
+      children: [
+        // 1. 지도 영역 분리
+        Expanded(
+          child: RecordMapView(routePoints: routePoints),
+        ),
+        // 2. 하단 요약 정보 영역 분리
+        RecordSummaryView(
+          distanceKm: record['distanceKm']?.toString() ?? '0',
+          pointCount: record['pointCount']?.toString() ?? '0',
+        ),
+      ],
+    );
+  }
+}
+
+/// [1] 지도 관련 UI를 담당하는 위젯
+class RecordMapView extends StatelessWidget {
+  final List<LatLng> routePoints;
+
+  const RecordMapView({super.key, required this.routePoints});
+
+  @override
+  Widget build(BuildContext context) {
     final startPoint = routePoints.first;
     final endPoint = routePoints.last;
 
-    // TabBarView 내부용이므로 Scaffold/AppBar를 제거하고 Column으로 구성
-    return Column(
+    return FlutterMap(
+      options: MapOptions(
+        initialCenter: startPoint,
+        initialZoom: 16.0,
+      ),
       children: [
-        Expanded(
-          child: FlutterMap(
-            options: MapOptions(
-              initialCenter: startPoint,
-              initialZoom: 16.0,
-            ),
-            children: [
-              TileLayer(
-                urlTemplate:
-                'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
-                userAgentPackageName: 'io.github.quizoverflow',
-              ),
-              PolylineLayer(
-                polylines: [
-                  Polyline(
-                    points: routePoints,
-                    strokeWidth: 5.0,
-                    color: Colors.blue,
-                  ),
-                ],
-              ),
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    point: startPoint,
-                    width: 40,
-                    height: 40,
-                    child: const Icon(
-                      Icons.location_on,
-                      color: Colors.green,
-                      size: 40,
-                    ),
-                  ),
-                  Marker(
-                    point: endPoint,
-                    width: 40,
-                    height: 40,
-                    child: const Icon(
-                      Icons.location_on,
-                      color: Colors.red,
-                      size: 40,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        TileLayer(
+          urlTemplate:
+          'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
+          userAgentPackageName: 'io.github.quizoverflow',
         ),
-        // 하단 요약 정보
-        Container(
-          padding: const EdgeInsets.all(20),
-          color: Colors.white,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('총 이동 거리', style: TextStyle(color: Colors.grey)),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${record['distanceKm']} km',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('수신 좌표 수', style: TextStyle(color: Colors.grey)),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${record['pointCount']} 개',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+        PolylineLayer(
+          polylines: [
+            Polyline(
+              points: routePoints,
+              strokeWidth: 5.0,
+              color: Colors.blue,
+            ),
+          ],
+        ),
+        MarkerLayer(
+          markers: [
+            LocationMarker(point: startPoint, color: Colors.green),
+            LocationMarker(point: endPoint, color: Colors.red),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// [2] 출발/도착 마커 아이콘 위젯 (중복 제거)
+class LocationMarker extends Marker {
+  LocationMarker({
+    super.key,
+    required LatLng point,
+    required Color color,
+  }) : super(
+    point: point,
+    width: 40,
+    height: 40,
+    child: Icon(
+      Icons.location_on,
+      color: color,
+      size: 40,
+    ),
+  );
+}
+
+/// [3] 하단 요약 정보 전체 패널 위젯
+class RecordSummaryView extends StatelessWidget {
+  final String distanceKm;
+  final String pointCount;
+
+  const RecordSummaryView({
+    super.key,
+    required this.distanceKm,
+    required this.pointCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      color: Colors.white,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          SummaryItem(title: '총 이동 거리', value: '$distanceKm km'),
+          SummaryItem(title: '수신 좌표 수', value: '$pointCount 개'),
+        ],
+      ),
+    );
+  }
+}
+
+/// [4] 요약 정보의 각 항목(제목 + 값) 컴포넌트
+class SummaryItem extends StatelessWidget {
+  final String title;
+  final String value;
+
+  const SummaryItem({
+    super.key,
+    required this.title,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(color: Colors.grey),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ],

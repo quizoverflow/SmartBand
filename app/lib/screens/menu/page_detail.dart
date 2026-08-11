@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'menu_dashboard.dart';
+import '../../data/run_record.dart';
 
 class RunDetailPage extends StatelessWidget {
 
