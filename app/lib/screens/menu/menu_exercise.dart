@@ -1,6 +1,6 @@
 import 'package:app/meta/app_theme.dart';
 import 'package:app/screens/utility/permission_handler_screen.dart';
-import 'package:app/screens/utility/screen_tracking.dart';
+import 'package:app/screens/screen_tracking.dart';
 import 'package:flutter/material.dart';
 
 class ExerciseMenu extends StatelessWidget {
