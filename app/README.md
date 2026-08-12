@@ -1,16 +1,19 @@
-# app
+### WayRunning 시스템 어플리케이션
+---
+#### Features
 
-Mobile Application for Imbeded contest 2026
+Language : Dart
 
-## Getting Started
+Framework : Flutter
 
-This project is a starting point for a Flutter application.
+소스코드 주요 파일은 대부분 lib/ 에 위치합니다.
 
-A few resources to get you started if this is your first Flutter project:
+1. data
+2. meta
+3. screens
+4. start
+5. utility
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+app.dart
+main.dart
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
