@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:app/screens/utility/bluetooth_manager.dart';
 import 'package:app/screens/utility/bluetooth_tracking.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -8,9 +9,9 @@ import 'package:permission_handler/permission_handler.dart';
 
 import 'utility/db_helper.dart';
 
-// =============================================================================
-// 1. GPS 가동 화면 (위치 추적 화면)
-// =============================================================================
+// ======================
+// GPS 가동 화면 (위치 추적 화면)
+// =====================
 class TrackingScreen extends StatefulWidget {
   const TrackingScreen({super.key});
 
@@ -20,13 +21,11 @@ class TrackingScreen extends StatefulWidget {
 
 class _TrackingScreenState extends State<TrackingScreen> {
   StreamSubscription<Position>? _positionStreamSubscription;
+  //블루투스 수신정보
+  final List<RunningPacket> left = [], right = [];
+
   final List<LatLng> _routePoints = [];
-  final List<double> leftImpactList = [];
-  final List<double> leftCadenceList = [];
-  final List<double> leftGroundTimeList = [];
-  final List<double> rightImpactList = [];
-  final List<double> rightCadenceList = [];
-  final List<double> rightGroundTimeList = [];
+
   Position? _currentPosition;
 
   @override
@@ -53,7 +52,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
       return;
     }
 
-    // 2. GPS 서비스 활성화 여부 확인
+    // GPS 서비스 활성화 여부 확인
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       if (mounted) {
@@ -62,10 +61,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
       return;
     }
 
-    // 3. 위치 수신 스트림 구독 (5m 이동 시 갱신)
+    // 위치 수신 스트림 구독 (3m 이동 시 갱신)
     const locationSettings = LocationSettings(
       accuracy: LocationAccuracy.high,
-      distanceFilter: 5,
+      distanceFilter: 3,
     );
 
     _positionStreamSubscription =
@@ -93,7 +92,11 @@ class _TrackingScreenState extends State<TrackingScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) => MapResultScreen(routePoints: _routePoints),
+        builder: (_) => MapResultScreen(
+          routePoints: _routePoints,
+          left: left,
+          right: right,
+        ),
       ),
     );
   }
@@ -147,15 +150,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
             ),
 
             // 블루투스 모니터링 위젯. 모니터링 뿐만 아니라 데이터 저장/계산도 수행함
-            RunningMonitor(
-              leftCadenceList: leftCadenceList,
-              leftGroundTimeList: leftGroundTimeList,
-              leftImpactList: leftImpactList,
-              rightCadenceList: rightCadenceList,
-              rightImpactList: rightImpactList,
-              rightGroundTimeList: rightGroundTimeList,
-            ),
-
+            RunningMonitor(left: left,right : right),
           ],
         ),
       ),
@@ -172,8 +167,14 @@ class _TrackingScreenState extends State<TrackingScreen> {
 // =============================================================================
 class MapResultScreen extends StatelessWidget {
   final List<LatLng> routePoints;
+  final List<RunningPacket> left, right;
 
-  const MapResultScreen({super.key, required this.routePoints});
+  const MapResultScreen({
+    super.key,
+    required this.routePoints,
+    required this.left,
+    required this.right,
+  });
 
   Future<void> _handleSaveRecord(BuildContext context) async {
     final recordId = await saveTrackingDataToDB(routePoints);
@@ -192,6 +193,9 @@ class MapResultScreen extends StatelessWidget {
       messenger.showSnackBar(
         const SnackBar(content: Text('저장할 위치 데이터가 없습니다.')),
       );
+    }
+    void calculateRecord(){
+
     }
   }
 
@@ -317,9 +321,9 @@ class _SaveBottomBar extends StatelessWidget {
   }
 }
 
-// =============================================================================
+// ===================================
 // 3. 비즈니스 로직 (거리 계산 및 DB 저장)
-// =============================================================================
+// ===================================
 
 /// GPS 좌표 목록으로 총 거리를 계산한 후 DB에 저장
 Future<int> saveTrackingDataToDB(List<LatLng> routePoints) async {
@@ -351,12 +355,15 @@ Future<int> saveTrackingDataToDB(List<LatLng> routePoints) async {
       .toList();
 
   // DB에 저장
+  // 일단 러닝 시간은 나중에 구현
   return await DBHelper.insertRecord(
+    runningTime: 0,
     distanceKm: distanceInKm,
     pointCount: routePoints.length,
     pathData: pathData,
     impactData: [],
     cadenceData: [],
     groundTimeData: [],
+    balanceData: [],
   );
 }

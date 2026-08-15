@@ -26,12 +26,14 @@ class DBHelper {
           CREATE TABLE records (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             createdAt TEXT,
+            runningTime INTEGER,
             distanceKm REAL,
             pointCount INTEGER,
             pathJson TEXT,
             impactJson TEXT,
             cadenceJson TEXT,
-            groundTimeJson TEXT
+            groundTimeJson TEXT,
+            balanceJson TEXT
           )
         ''');
       },
@@ -42,10 +44,12 @@ class DBHelper {
   static Future<int> insertRecord({
     required double distanceKm,
     required int pointCount,
+    required int runningTime,
     required List<Map<String, double>> pathData,
     required List<double>? impactData,
     required List<double>? cadenceData,
-    required List<double>? groundTimeData
+    required List<double>? groundTimeData,
+    required List<double>? balanceData
   }) async {
     final db = await database;
 
@@ -54,8 +58,10 @@ class DBHelper {
     final String? impactJson = impactData != null ? jsonEncode(impactData) : null;
     final String? cadenceJson = cadenceData != null ? jsonEncode(cadenceData) : null;
     final String? groundTimeJson = groundTimeData != null ? jsonEncode(groundTimeData) : null;
+    final String? balanceJson = balanceData != null ? jsonEncode(balanceData) : null;
 
     return await db.insert('records', {
+      'runningTime' : runningTime,
       'distanceKm': distanceKm,
       'pointCount': pointCount,
       'pathJson': pathJson,
@@ -63,6 +69,7 @@ class DBHelper {
       'impactJson' : impactJson,
       'cadenceJson' : cadenceJson,
       'groundTimeJson' : groundTimeJson,
+      'balanceJson' : balanceJson,
     });
   }
 

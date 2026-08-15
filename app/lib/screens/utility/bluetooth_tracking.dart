@@ -1,24 +1,18 @@
 import 'dart:async';
 
+import 'package:app/data/run_record.dart';
 import 'package:flutter/material.dart';
 import 'bluetooth_manager.dart';
 
 class RunningMonitor extends StatefulWidget {
-  final List<double> leftCadenceList;
-  final List<double> leftImpactList;
-  final List<double> leftGroundTimeList;
-  final List<double> rightCadenceList;
-  final List<double> rightImpactList;
-  final List<double> rightGroundTimeList;
+  // 좌우 러닝 정보 (블루투스 수신정보)
+  final List<RunningPacket> left;
+  final List<RunningPacket> right;
 
   RunningMonitor({
     super.key,
-    required this.leftCadenceList,
-    required this.leftImpactList,
-    required this.leftGroundTimeList,
-    required this.rightCadenceList,
-    required this.rightImpactList,
-    required this.rightGroundTimeList,
+    required this.left,
+    required this.right,
   });
 
   final BluetoothManager btManager = BluetoothManager();
@@ -89,6 +83,7 @@ class _RunningMonitorState extends State<RunningMonitor> {
         continue;
       }
 
+      // 문자열에서 패킷 파싱
       final packet = _parsePacket(line);
 
       if (packet == null) {
@@ -101,9 +96,7 @@ class _RunningMonitorState extends State<RunningMonitor> {
       });
 
       // 리스트에 저장
-      widget.leftCadenceList.add(packet.cadence);
-      widget.leftImpactList.add(packet.impact);
-      widget.leftGroundTimeList.add(packet.groundTime);
+      widget.left.add(packet);
     }
   }
 
@@ -137,9 +130,7 @@ class _RunningMonitorState extends State<RunningMonitor> {
       });
 
       // 리스트에 저장
-      widget.rightCadenceList.add(packet.cadence);
-      widget.rightImpactList.add(packet.impact);
-      widget.rightGroundTimeList.add(packet.groundTime);
+      widget.right.add(packet);
     }
   }
 

@@ -1,8 +1,11 @@
 import 'dart:convert';
 
+import 'package:latlong2/latlong.dart';
+
 class RunRecord {
   final int id;
   final DateTime? createdAt;
+  final int? runningTime;
   final double? distanceKm;
   final int? pointCount;
 
@@ -10,16 +13,19 @@ class RunRecord {
   final List<double>? impact;
   final List<double>? cadence;
   final List<double>? groundTime;
+  final List<double>? balance;
 
   RunRecord({
     required this.id,
     this.createdAt,
+    this.runningTime,
     this.distanceKm,
     this.pointCount,
     this.path,
     this.impact,
     this.cadence,
     this.groundTime,
+    this.balance,
   });
 
   /// SQLite Map → RunRecord
@@ -78,4 +84,20 @@ class RunRecord {
 
     return jsonEncode(value);
   }
+}
+
+//블루투스로 측정되는 정보들
+class RunningMetrics {
+  final int packetNumber;
+  final double impact;
+  final double cadence;
+  final double groundTime;
+
+
+  RunningMetrics({
+    required this.packetNumber,
+    required this.impact,
+    required this.cadence,
+    required this.groundTime,
+  });
 }
