@@ -1,3 +1,4 @@
+import 'package:app/screens/utility/db_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -52,6 +53,7 @@ class _SettingModalState extends State<SettingModal> {
 
           makeSwitch("다크 모드","isDarkMode"),
           makeSwitch("알림 설정","isNoticeOn"),
+          makeDataResetButton(),
 
           SizedBox(height: 12),
         ],
@@ -77,10 +79,20 @@ class _SettingModalState extends State<SettingModal> {
           pref.updateData(itemName, value);
           settings[itemName] = value;
           context.read<ThemeProvider>().toggleTheme();
-          setState(() {
-
-          });
+          setState(() {});
         }
+    );
+  }
+
+  ListTile makeDataResetButton(){
+    return ListTile(
+      title: const Text('데이터 일괄삭제'),
+      trailing: ElevatedButton(
+        onPressed: () async {
+          await DBHelper.resetDatabase();
+        },
+        child: const Text('삭제'),
+      ),
     );
   }
 

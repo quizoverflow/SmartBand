@@ -25,7 +25,7 @@ class DBHelper {
         await db.execute('''
           CREATE TABLE records (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            createdAt TEXT
+            createdAt TEXT,
             distanceKm REAL,
             pointCount INTEGER,
             pathJson TEXT,
@@ -92,4 +92,20 @@ class DBHelper {
       whereArgs: [id],
     );
   }
+
+
+  /// 개발중 초기화용
+  static Future<void> resetDatabase() async {
+    if (_database != null) {
+      await _database!.close();
+      _database = null;
+    }
+
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, 'running_records.db');
+
+    await deleteDatabase(path);
+
+  }
+
 }
