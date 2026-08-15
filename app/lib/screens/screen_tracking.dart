@@ -177,7 +177,7 @@ class MapResultScreen extends StatelessWidget {
   });
 
   Future<void> _handleSaveRecord(BuildContext context) async {
-    final recordId = await saveTrackingDataToDB(routePoints);
+    final recordId = await saveTrackingDataToDB(routePoints,left,right);
 
     if (!context.mounted) return;
 
@@ -326,16 +326,18 @@ class _SaveBottomBar extends StatelessWidget {
 // ===================================
 
 /// GPS 좌표 목록으로 총 거리를 계산한 후 DB에 저장
-Future<int> saveTrackingDataToDB(List<LatLng> routePoints) async {
+Future<int> saveTrackingDataToDB(
+    List<LatLng> routePoints,
+    List<RunningPacket> left,
+    List<RunningPacket> right) async {
+
+  // ======== 먼저 경로 길이 계산 =====
   if (routePoints.isEmpty) return -1;
-
   double totalDistanceInMeters = 0.0;
-
   // 총 이동 거리 계산 (Haversine formula 기반)
   for (int i = 0; i < routePoints.length - 1; i++) {
     final start = routePoints[i];
     final end = routePoints[i + 1];
-
     totalDistanceInMeters += Geolocator.distanceBetween(
       start.latitude,
       start.longitude,
@@ -343,7 +345,6 @@ Future<int> saveTrackingDataToDB(List<LatLng> routePoints) async {
       end.longitude,
     );
   }
-
   // km 단위 변환 (소수점 2자리)
   final distanceInKm = double.parse(
     (totalDistanceInMeters / 1000).toStringAsFixed(2),
@@ -353,6 +354,9 @@ Future<int> saveTrackingDataToDB(List<LatLng> routePoints) async {
   final pathData = routePoints
       .map((point) => {'lat': point.latitude, 'lng': point.longitude})
       .toList();
+  // ======= 블루투스 수신 정보 left, right 평균화 =====
+  final List<RunningPacket> avg;
+
 
   // DB에 저장
   // 일단 러닝 시간은 나중에 구현
