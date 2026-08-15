@@ -5,6 +5,7 @@
 
 
 import 'dart:convert';
+import 'package:app/screens/menu/screen_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -14,7 +15,7 @@ class RecordDetailTab extends StatelessWidget {
 
   const RecordDetailTab({super.key, required this.record});
 
-  // 데이터 파싱 로직을 별도 메서드로 추출 (build 메서드 명확화)
+  /// 데이터 파싱 로직을 별도 메서드로 추출 (build 메서드 명확화)
   List<LatLng> _parseRoutePoints(String pathJsonStr) {
     final List<dynamic> pathJson = jsonDecode(pathJsonStr);
     return pathJson.map((point) {
@@ -42,13 +43,14 @@ class RecordDetailTab extends StatelessWidget {
         RecordSummaryView(
           distanceKm: record['distanceKm']?.toString() ?? '0',
           pointCount: record['pointCount']?.toString() ?? '0',
+          record: record,
         ),
       ],
     );
   }
 }
 
-/// [1] 지도 관련 UI를 담당하는 위젯
+/// 지도 관련 UI를 담당하는 위젯
 class RecordMapView extends StatelessWidget {
   final List<LatLng> routePoints;
 
@@ -90,7 +92,7 @@ class RecordMapView extends StatelessWidget {
   }
 }
 
-/// [2] 출발/도착 마커 아이콘 위젯 (중복 제거)
+/// 출발/도착 마커 아이콘 위젯 (중복 제거)
 class LocationMarker extends Marker {
   LocationMarker({
     super.key,
@@ -108,15 +110,17 @@ class LocationMarker extends Marker {
   );
 }
 
-/// [3] 하단 요약 정보 전체 패널 위젯
+/// 하단 요약 정보 전체 패널 위젯
 class RecordSummaryView extends StatelessWidget {
   final String distanceKm;
   final String pointCount;
+  final Map<String,dynamic> record;
 
   const RecordSummaryView({
     super.key,
     required this.distanceKm,
     required this.pointCount,
+    required this.record
   });
 
   @override
@@ -129,13 +133,21 @@ class RecordSummaryView extends StatelessWidget {
         children: [
           SummaryItem(title: '총 이동 거리', value: '$distanceKm km'),
           SummaryItem(title: '수신 좌표 수', value: '$pointCount 개'),
+          ElevatedButton(
+              onPressed:(){
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => DetailScreen(record: record))
+                );
+              },
+              child: Text("분석하기"))
         ],
       ),
     );
   }
 }
 
-/// [4] 요약 정보의 각 항목(제목 + 값) 컴포넌트
+/// 요약 정보의 각 항목(제목 + 값) 컴포넌트
 class SummaryItem extends StatelessWidget {
   final String title;
   final String value;

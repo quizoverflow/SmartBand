@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 
 import '../../data/run_record.dart';
 
-class RunDetailPage extends StatelessWidget {
+class DetailScreen extends StatelessWidget {
 
-  final RunRecord record;
+  final Map<String,dynamic> record;
 
 
-  const RunDetailPage({
+  const DetailScreen({
     super.key,
     required this.record,
   });
@@ -26,7 +26,7 @@ class RunDetailPage extends StatelessWidget {
 
       body: Center(
         child: Text(
-          "${record.distance}km 상세 분석",
+          "${record['distanceKm']}km 상세 분석",
           style:
           const TextStyle(
             fontSize: 24,
