@@ -3,6 +3,8 @@ import 'package:app/screens/utility/format.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../../data/run_record.dart';
+
 class DBHelper {
   static Database? _database;
 
@@ -23,10 +25,13 @@ class DBHelper {
         await db.execute('''
           CREATE TABLE records (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            createdAt TEXT
             distanceKm REAL,
             pointCount INTEGER,
             pathJson TEXT,
-            createdAt TEXT
+            impactJson TEXT,
+            cadenceJson TEXT,
+            groundTimeJson TEXT
           )
         ''');
       },
@@ -38,17 +43,26 @@ class DBHelper {
     required double distanceKm,
     required int pointCount,
     required List<Map<String, double>> pathData,
+    required List<double>? impactData,
+    required List<double>? cadenceData,
+    required List<double>? groundTimeData
   }) async {
     final db = await database;
 
     // 좌표 리스트를 JSON 문자열로 변환하여 저장
     final String pathJson = jsonEncode(pathData);
+    final String? impactJson = impactData != null ? jsonEncode(impactData) : null;
+    final String? cadenceJson = cadenceData != null ? jsonEncode(cadenceData) : null;
+    final String? groundTimeJson = groundTimeData != null ? jsonEncode(groundTimeData) : null;
 
     return await db.insert('records', {
       'distanceKm': distanceKm,
       'pointCount': pointCount,
       'pathJson': pathJson,
       'createdAt': formatDateTime(DateTime.now()),
+      'impactJson' : impactJson,
+      'cadenceJson' : cadenceJson,
+      'groundTimeJson' : groundTimeJson,
     });
   }
 
@@ -57,12 +71,24 @@ class DBHelper {
     final db = await database;
     return await db.query('records', orderBy: 'id DESC');
   }
+
+  // RunRecord 클래스로 조회하는 함수
+  static Future<List<RunRecord>> getRunRecords() async {
+    final db = await _initDB();
+
+    final maps = await db.query(
+      'records',
+      orderBy: 'createdAt DESC',
+    );
+
+    return maps.map((map) => RunRecord.fromMap(map)).toList();
+  }
   // 삭제
   static Future<int> deleteRecord(int id) async {
-    final db = await database; // 기존 database getter 호출 (또는 본인의 DB 인스턴스 변수)
+    final db = await database;
     return await db.delete(
-      'records', // 💡 실제 DB 테이블 이름으로 변경하세요 (예: 'records' 또는 'running_records')
-      where: 'id = ?', // 💡 Primary Key 컬럼 이름으로 변경하세요 (예: 'id')
+      'records', // 테이블 이름은 일단 records
+      where: 'id = ?',
       whereArgs: [id],
     );
   }

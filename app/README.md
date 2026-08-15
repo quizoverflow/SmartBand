@@ -1,5 +1,11 @@
 ### WayRunning 시스템 어플리케이션
 ---
+#### 향후 개발 필요사항
+1. screen_tracking.dart에서 인스턴스 리스트 변수들로
+계산 후 db에 저장하는 코드 작성필요
+2. 
+
+---
 #### Features
 
 Language : Dart
@@ -16,4 +22,5 @@ Framework : Flutter
 
 app.dart
 main.dart
+
 

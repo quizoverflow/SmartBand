@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:app/screens/utility/bluetooth_debug.dart';
+import 'package:app/screens/utility/bluetooth_tracking.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -21,6 +21,12 @@ class TrackingScreen extends StatefulWidget {
 class _TrackingScreenState extends State<TrackingScreen> {
   StreamSubscription<Position>? _positionStreamSubscription;
   final List<LatLng> _routePoints = [];
+  final List<double> leftImpactList = [];
+  final List<double> leftCadenceList = [];
+  final List<double> leftGroundTimeList = [];
+  final List<double> rightImpactList = [];
+  final List<double> rightCadenceList = [];
+  final List<double> rightGroundTimeList = [];
   Position? _currentPosition;
 
   @override
@@ -140,8 +146,15 @@ class _TrackingScreenState extends State<TrackingScreen> {
               ),
             ),
 
-            // 블루투스 디버깅용 화면
-            const BluetoothDebugWidget()
+            // 블루투스 모니터링 위젯. 모니터링 뿐만 아니라 데이터 저장/계산도 수행함
+            RunningMonitor(
+              leftCadenceList: leftCadenceList,
+              leftGroundTimeList: leftGroundTimeList,
+              leftImpactList: leftImpactList,
+              rightCadenceList: rightCadenceList,
+              rightImpactList: rightImpactList,
+              rightGroundTimeList: rightGroundTimeList,
+            ),
 
           ],
         ),
@@ -342,5 +355,8 @@ Future<int> saveTrackingDataToDB(List<LatLng> routePoints) async {
     distanceKm: distanceInKm,
     pointCount: routePoints.length,
     pathData: pathData,
+    impactData: [],
+    cadenceData: [],
+    groundTimeData: [],
   );
 }

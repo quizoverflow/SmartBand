@@ -3,6 +3,41 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_classic/flutter_blue_classic.dart';
 
+class RunningPacket {
+  final int packetNumber;
+  final double peak;
+  final double cadence;
+  final double impact;
+  final double groundTime;
+
+  RunningPacket({
+    required this.packetNumber,
+    required this.peak,
+    required this.cadence,
+    required this.impact,
+    required this.groundTime,
+  });
+}
+RunningPacket? parsePacket(String data) {
+  try {
+    final values = data.trim().split(',');
+
+    if (values.length != 5) {
+      return null;
+    }
+
+    return RunningPacket(
+      packetNumber: int.parse(values[0]),
+      peak: double.parse(values[1]),
+      cadence: double.parse(values[2]),
+      impact: double.parse(values[3]),
+      groundTime: double.parse(values[4]),
+    );
+  } catch (e) {
+    return null;
+  }
+}
+
 
 // 싱글톤 패턴 구현
 class BluetoothManager {
@@ -80,6 +115,7 @@ class BluetoothManager {
       return false;
     }
   }
+
 
   /// 앱 -> 아두이노 시리얼 전송. 필수기능은 아님.
   Future<void> sendData(int deviceNumber, String data) async {
