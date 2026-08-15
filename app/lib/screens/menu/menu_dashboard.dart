@@ -1,169 +1,139 @@
-import 'package:app/meta/app_theme.dart';
-import 'package:app/screens/menu/page_detail.dart';
 import 'package:flutter/material.dart';
 
-import '../../data/run_record.dart';
+import '../../meta/app_theme.dart';
 
 
+class RecordListView extends StatelessWidget {
+  final Future<List<Map<String, dynamic>>> recordsFuture;
+  final Future<void> Function() onRefresh;
+  final Future<void> Function(dynamic id) onDelete;
+  final void Function(Map<String, dynamic> record) onTap;
 
-/// 2. 대시보드 메인 메뉴 (불필요한 State 제거 -> StatelessWidget 변경)
-class DashboardMenu extends StatelessWidget {
-  const DashboardMenu({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(8),
-      children: const [
-        RunHistoryWidget(),
-      ],
-    );
-  }
-}
-
-/// 3. 러닝 히스토리 섹션 위젯
-class RunHistoryWidget extends StatefulWidget {
-  const RunHistoryWidget({super.key});
-
-  @override
-  State<RunHistoryWidget> createState() => _RunHistoryWidgetState();
-}
-
-class _RunHistoryWidgetState extends State<RunHistoryWidget> {
-  // 더미 데이터 목록
-  final List<RunRecord> _records = [
-    RunRecord(
-      distance: 5.2,
-      time: const Duration(minutes: 24, seconds: 32),
-      date: DateTime.now(),
-    ),
-    RunRecord(
-      distance: 3.8,
-      time: const Duration(minutes: 18, seconds: 10),
-      date: DateTime.now(),
-    ),
-    RunRecord(
-      distance: 3.8,
-      time: const Duration(minutes: 18, seconds: 10),
-      date: DateTime.now(),
-    ),
-  ];
-
-  void addRecord(RunRecord record) {
-    setState(() {
-      _records.insert(0, record);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AppTheme.midTitle(" 러닝 기록"),
-        const SizedBox(height: 16),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: _records.length,
-          itemBuilder: (context, index) {
-            final record = _records[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: RunRecordCard(
-                record: record,
-                onTap: () => _navigateToDetail(context, record),
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  void _navigateToDetail(BuildContext context, RunRecord record) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => RunDetailPage(record: record),
-      ),
-    );
-  }
-}
-
-/// 4. 러닝 기록 개별 카드 컴포넌트 (가독성의 핵심)
-class RunRecordCard extends StatelessWidget {
-  final RunRecord record;
-  final VoidCallback onTap;
-
-  const RunRecordCard({
+  const RecordListView({
     super.key,
-    required this.record,
+    required this.recordsFuture,
+    required this.onRefresh,
+    required this.onDelete,
     required this.onTap,
   });
 
-  String _formatDuration(Duration duration) {
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds % 60;
-    return '$minutes분 $seconds초';
-  }
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: recordsFuture,
+      builder: (context, snapshot) {
+        // 데이터 로딩 중
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
 
-  String _formatDate(DateTime date) {
-    return '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}';
+        // 에러 발생
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              '기록을 불러오는 중 오류가 발생했습니다.\n${snapshot.error}',
+              textAlign: TextAlign.center,
+            ),
+          );
+        }
+
+        final records = snapshot.data ?? [];
+
+        // 기록이 없는 경우
+        if (records.isEmpty) {
+          return const Center(
+            child: Text(
+              '저장된 러닝 기록이 없습니다.',
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 16,
+              ),
+            ),
+          );
+        }
+
+        // 기록 목록
+        return RefreshIndicator(
+          onRefresh: onRefresh,
+          child: ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: records.length,
+            itemBuilder: (context, index) {
+              final record = records[index];
+
+              return RecordTile(
+                record: record,
+                onDelete: () => onDelete(record['id']),
+                onTap: () => onTap(record),
+              );
+            },
+          ),
+        );
+      },
+    );
   }
+}
+
+
+/// 러닝 기록 목록 개별 아이템 카드 위젯
+class RecordTile extends StatelessWidget {
+  final Map<String, dynamic> record;
+  final VoidCallback onDelete;
+  final VoidCallback onTap;
+
+  const RecordTile({
+    super.key,
+    required this.record,
+    required this.onDelete,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFFE8FFFA),
-        foregroundColor: const Color(0xFF1E293B),
-        padding: const EdgeInsets.all(20),
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+    final recordId = record['id'];
+    final dateStr = record['createdAt']?.toString() ?? '날짜 정보 없음';
+    final rawDistance = record['distanceKm'];
+    final distanceStr = rawDistance != null
+        ? '${(rawDistance as num).toStringAsFixed(2)} km'
+        : '0.00 km';
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
       ),
-      onPressed: onTap,
-      child: Row(
-        children: [
-          const Icon(
-            Icons.directions_run,
-            size: 32,
-            color: Color(0xFF00C7BE),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: CircleAvatar(
+          backgroundColor: AppTheme.primaryColor,
+          child: const Icon(Icons.directions_run, color: Colors.black),
+        ),
+        title: Text(
+          distanceStr,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${record.distance} km',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  _formatDuration(record.time),
-                  style: TextStyle(
-                    color: Colors.grey[700],
-                    fontSize: 14,
-                  ),
-                ),
-              ],
+        ),
+        subtitle: Text(
+          dateStr,
+          style: TextStyle(color: Colors.grey[600], fontSize: 13),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+              tooltip: '삭제',
+              onPressed: recordId != null ? onDelete : null,
             ),
-          ),
-          // 날짜 표시 추가
-          Text(
-            _formatDate(record.date),
-            style: const TextStyle(
-              color: Colors.grey,
-              fontSize: 12,
-            ),
-          ),
-        ],
+            const Icon(Icons.chevron_right, color: Colors.grey),
+          ],
+        ),
+        onTap: onTap,
       ),
     );
   }
