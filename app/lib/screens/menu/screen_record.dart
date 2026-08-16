@@ -42,7 +42,7 @@ class RecordDetailTab extends StatelessWidget {
         // 2. 하단 요약 정보 영역 분리
         RecordSummaryView(
           distanceKm: record['distanceKm']?.toString() ?? '0',
-          pointCount: record['pointCount']?.toString() ?? '0',
+          runningTime: record['runningTime'] ?? 0,
           record: record,
         ),
       ],
@@ -113,18 +113,24 @@ class LocationMarker extends Marker {
 /// 하단 요약 정보 전체 패널 위젯
 class RecordSummaryView extends StatelessWidget {
   final String distanceKm;
-  final String pointCount;
+  final int runningTime;
   final Map<String,dynamic> record;
 
   const RecordSummaryView({
     super.key,
     required this.distanceKm,
-    required this.pointCount,
+    required this.runningTime,
     required this.record
   });
 
   @override
   Widget build(BuildContext context) {
+    Duration duration = Duration(seconds: runningTime);
+    // 시, 분, 초
+    String hours = duration.inHours.toString().padLeft(2, '0');
+    String minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
+    String secs = (duration.inSeconds % 60).toString().padLeft(2, '0');
+    String formattedTime = "$hours:$minutes:$secs";
     return Container(
       padding: const EdgeInsets.all(20),
       color: Colors.white,
@@ -132,7 +138,7 @@ class RecordSummaryView extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           SummaryItem(title: '총 이동 거리', value: '$distanceKm km'),
-          SummaryItem(title: '수신 좌표 수', value: '$pointCount 개'),
+          SummaryItem(title: '러닝 시간', value: formattedTime),
           ElevatedButton(
               onPressed:(){
                 Navigator.push(
