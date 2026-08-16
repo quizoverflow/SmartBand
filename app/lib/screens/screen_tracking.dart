@@ -23,20 +23,32 @@ class _TrackingScreenState extends State<TrackingScreen> {
   StreamSubscription<Position>? _positionStreamSubscription;
   //블루투스 수신정보
   final List<RunningPacket> left = [], right = [];
-
+  //GPS 정보
   final List<LatLng> _routePoints = [];
-
   Position? _currentPosition;
+
+  //스탑워치용
+  final Stopwatch _stopwatch = Stopwatch();
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _startTracking();
+    // 페이지 로드되자마자 바로 시작. 추후 변경될 수 있음
+    _stopwatch.start();
+    _timer = Timer.periodic(const Duration(milliseconds: 100),(timer){
+      if(mounted){
+        setState(() {});
+      }
+    });
   }
 
   @override
   void dispose() {
     _positionStreamSubscription?.cancel();
+    _timer?.cancel();
+    _stopwatch.stop();
     super.dispose();
   }
 
@@ -87,12 +99,17 @@ class _TrackingScreenState extends State<TrackingScreen> {
       Navigator.pop(context);
       return;
     }
+    // 시간 계산
+    _timer?.cancel();
+    _stopwatch.stop();
+    int runningTime = _stopwatch.elapsedMilliseconds ~/ 1000;
 
     // 결과 화면으로 이동하며 현 화면 교체
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (_) => MapResultScreen(
+          runningTime: runningTime,
           routePoints: _routePoints,
           left: left,
           right: right,
@@ -106,16 +123,49 @@ class _TrackingScreenState extends State<TrackingScreen> {
       SnackBar(content: Text(message)),
     );
   }
+  //스탑워치 위젯
+  Widget _buildStopwatch(){
+    // 경과 시간을 분, 초, 1/10초로 계산
+    final elapsed = _stopwatch.elapsed;
+    final minutes = elapsed.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = elapsed.inSeconds.remainder(60).toString().padLeft(2, '0');
+    final hundreds = (elapsed.inMilliseconds.remainder(1000) ~/ 100)
+        .toString(); // 0.1초 단위
 
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.timer_outlined, color: Colors.black87, size: 24),
+          const SizedBox(width: 8),
+          Text(
+            '$minutes:$seconds.$hundreds',
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              fontFeatures: [FontFeature.tabularFigures()], // 숫자가 변해도 너비 고정
+              color: Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('GPS 위치 추적 중')),
+      //appBar: AppBar(title: const Text('Running')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircularProgressIndicator(),
+            _buildStopwatch(),
             const SizedBox(height: 24),
             const Text(
               'GPS가 가동 중입니다...',
@@ -162,22 +212,24 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
 
 
-// =============================================================================
+// ================================
 // 2. flutter_map 기반 지도 결과 화면
-// =============================================================================
+// ================================
 class MapResultScreen extends StatelessWidget {
   final List<LatLng> routePoints;
   final List<RunningPacket> left, right;
+  final int runningTime;
 
   const MapResultScreen({
     super.key,
     required this.routePoints,
     required this.left,
     required this.right,
+    required this.runningTime,
   });
 
   Future<void> _handleSaveRecord(BuildContext context) async {
-    final recordId = await saveTrackingDataToDB(routePoints,left,right);
+    final recordId = await saveTrackingDataToDB(runningTime,routePoints,left,right);
 
     if (!context.mounted) return;
 
@@ -327,6 +379,7 @@ class _SaveBottomBar extends StatelessWidget {
 
 /// GPS 좌표 목록으로 총 거리를 계산한 후 DB에 저장
 Future<int> saveTrackingDataToDB(
+    int runningTime,
     List<LatLng> routePoints,
     List<RunningPacket> left,
     List<RunningPacket> right) async {
@@ -361,7 +414,7 @@ Future<int> saveTrackingDataToDB(
   // DB에 저장
   // 일단 러닝 시간은 나중에 구현
   return await DBHelper.insertRecord(
-    runningTime: 0,
+    runningTime: runningTime,
     distanceKm: distanceInKm,
     pointCount: routePoints.length,
     pathData: pathData,
