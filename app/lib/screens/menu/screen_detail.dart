@@ -1,5 +1,6 @@
+import 'dart:convert';
+
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/run_record.dart';
@@ -37,28 +38,28 @@ class DetailScreen extends StatelessWidget {
             height: 200,
             title: '케이던스',
             description: '시간에 따른 케이던스 변화',
-            data: record['cadenceJson'],
+            data: (jsonDecode(record['cadenceJson'] as String) as List).map((e) => (e as num).toDouble()).toList(),
           ),
 
           GraphCard(
             height: 200,
             title: '충격량',
             description: '시간에 따른 충격량 변화',
-            data: record['impactJson'],
+            data: (jsonDecode(record['impactJson'] as String) as List).map((e) => (e as num).toDouble()).toList(),
           ),
 
           GraphCard(
             height: 200,
             title: '지면접촉시간',
             description: '시간에 따른 지면접촉시간 변화',
-            data: record['groundTimeJson'],
+            data: (jsonDecode(record['groundTimeJson'] as String) as List).map((e) => (e as num).toDouble()).toList(),
           ),
 
           GraphCard(
             height: 200,
             title: '좌우 밸런스',
             description: '시간에 따른 좌우 밸런스 변화',
-            data: record['balanceJson'],
+            data: (jsonDecode(record['balanceJson'] as String) as List).map((e) => (e as num).toDouble()).toList(),
           ),
         ],
       )
