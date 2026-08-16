@@ -17,6 +17,26 @@ class RunningPacket {
     required this.impact,
     required this.groundTime,
   });
+
+  RunningPacket getAvg(RunningPacket other){
+    return RunningPacket(
+        packetNumber: packetNumber,
+        peak: (peak + other.peak) / 2,
+        cadence: (cadence + other.cadence) / 2,
+        impact: (impact + other.impact) / 2,
+        groundTime: (groundTime + other.groundTime) / 2);
+  }
+
+  double getBalanceScore(RunningPacket other){
+      double peakBalance = calculateBalance(peak, other.peak);
+      double cadenceBalance = calculateBalance(cadence, other.cadence);
+      double impactBalance = calculateBalance(peak, other.impact);
+      double groundTimeBalance = calculateBalance(peak, other.groundTime);
+      return (peakBalance + cadenceBalance + impactBalance + groundTimeBalance) / 4;
+  }
+  double calculateBalance(double a, double b){
+    return 100 - 200 * (a - b).abs() / (a + b);
+  }
 }
 RunningPacket? parsePacket(String data) {
   try {
@@ -69,25 +89,25 @@ class BluetoothManager {
   /// 기기 연결 및 페어링
   Future<bool> connectDevice(BluetoothDevice device, int deviceNumber) async {
     try {
-      debugPrint('🔗 HC-06 #$deviceNumber 연결 시작: ${device.address}');
+      debugPrint('HC-06 #$deviceNumber 연결 시작: ${device.address}');
 
       // 페어링 진행
       if (device.bondState != BluetoothBondState.bonded) {
-        debugPrint('🔐 HC-06 #$deviceNumber 페어링 시작');
+        debugPrint('HC-06 #$deviceNumber 페어링 시작');
         await _flutterBlueClassic.bondDevice(device.address);
-        debugPrint('🔐 HC-06 #$deviceNumber 페어링 완료');
+        debugPrint('HC-06 #$deviceNumber 페어링 완료');
       }
 
       // 연결 시도
       final connection = await _flutterBlueClassic.connect(device.address);
 
       if (connection == null || !connection.isConnected) {
-        debugPrint('❌ HC-06 #$deviceNumber 연결 실패');
+        debugPrint('HC-06 #$deviceNumber 연결 실패');
         connection?.dispose();
         return false;
       }
 
-      debugPrint('✅ HC-06 #$deviceNumber 연결 성공');
+      debugPrint('HC-06 #$deviceNumber 연결 성공');
 
       if (deviceNumber == 1) {
         await disconnect(1); // 기존 연결 정리
@@ -95,7 +115,7 @@ class BluetoothManager {
         connection1 = connection;
         _subscription1 = connection.input?.listen((event) {
           final data = utf8.decode(event);
-          debugPrint('📥 HC-06 #1: $data');
+          debugPrint('HC-06 #1: $data');
           _dataStreamController1.add(data);
         });
       } else {
@@ -104,14 +124,14 @@ class BluetoothManager {
         connection2 = connection;
         _subscription2 = connection.input?.listen((event) {
           final data = utf8.decode(event);
-          debugPrint('📥 HC-06 #2: $data');
+          debugPrint('HC-06 #2: $data');
           _dataStreamController2.add(data);
         });
       }
 
       return true;
     } catch (e) {
-      debugPrint('❌ HC-06 #$deviceNumber 연결 오류: $e');
+      debugPrint('HC-06 #$deviceNumber 연결 오류: $e');
       return false;
     }
   }

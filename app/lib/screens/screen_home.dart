@@ -200,7 +200,9 @@ class HomeHeader extends StatelessWidget {
           const Spacer(),
           // 유저 정보 버튼
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryColor,
               minimumSize: const Size(80, 28),
@@ -230,4 +232,6 @@ class HomeHeader extends StatelessWidget {
     );
   }
 }
+
+
 

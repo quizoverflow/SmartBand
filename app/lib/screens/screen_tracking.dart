@@ -246,9 +246,6 @@ class MapResultScreen extends StatelessWidget {
         const SnackBar(content: Text('저장할 위치 데이터가 없습니다.')),
       );
     }
-    void calculateRecord(){
-
-    }
   }
 
   @override
@@ -408,8 +405,34 @@ Future<int> saveTrackingDataToDB(
       .map((point) => {'lat': point.latitude, 'lng': point.longitude})
       .toList();
   // ======= 블루투스 수신 정보 left, right 평균화 =====
-  final List<RunningPacket> avg;
-
+  // 두 데이터의 수신 정보 차이가 더 많은 쪽의 데이터 사이즈 * 0.2 보다 크면 계산을 취소
+  List<RunningPacket> avg = [];
+  List<double> balance = [];
+  final List<RunningPacket> longer,shorter;
+  if(left.length >= right.length){
+    longer = left; shorter = right;
+  }
+  else{
+    longer = right; shorter = left;
+  }
+  if((left.length - right.length).abs() < 0.2 * longer.length){
+    int indexLong = 0 , indexShort = 0;
+    while(indexLong < longer.length && indexShort < shorter.length){
+      int packetNumLong = longer[indexLong].packetNumber;
+      int packetNumShort = shorter[indexShort].packetNumber;
+      // 패킷넘버 같으면 삽입
+      if(packetNumShort == packetNumLong){
+        avg.add(longer[indexLong].getAvg(shorter[indexShort]));
+        balance.add(longer[indexLong].getBalanceScore(shorter[indexShort]));
+      }
+      else if(packetNumShort > packetNumLong){
+        indexLong++;
+      }
+      else if(packetNumLong > packetNumShort){
+        indexShort++;
+      }
+    }
+  }
 
   // DB에 저장
   // 일단 러닝 시간은 나중에 구현
@@ -418,9 +441,9 @@ Future<int> saveTrackingDataToDB(
     distanceKm: distanceInKm,
     pointCount: routePoints.length,
     pathData: pathData,
-    impactData: [],
-    cadenceData: [],
-    groundTimeData: [],
-    balanceData: [],
+    impactData: avg.map((packet) => packet.impact).toList(),
+    cadenceData: avg.map((packet) => packet.cadence).toList(),
+    groundTimeData: avg.map((packet) => packet.groundTime).toList(),
+    balanceData: balance,
   );
 }

@@ -21,12 +21,9 @@ class Pref{
   };
   Future<void> printAll() async{
     pref = await SharedPreferences.getInstance();
-    print("========shared preferences=====");
     for (var key in pref.getKeys()){
       final value = pref.get(key);
-      print("$key : $value");
     }
-    print("===============================");
   }
   Future<void> _loadData() async{
     pref = await SharedPreferences.getInstance();
@@ -69,8 +66,6 @@ class Pref{
       pref.setInt(itemName,value);
     }
   }
-
-
 
 }
 

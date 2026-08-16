@@ -1,11 +1,8 @@
 ### WayRunning 시스템 어플리케이션
 ---
 #### 향후 개발 필요사항
-1. screen_tracking.dart에서 인스턴스 리스트 변수들로
-계산 후 db에 저장하는 코드 작성필요 => 359번째 줄 부터
-2. 러닝시간 기록 코드 구현 
-3. 
-
+1. 러닝 정보 분석
+screen_record -> screen_detail 에서
 ---
 #### Features
 
