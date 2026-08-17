@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app/meta/theme_provider.dart';
-import '../app.dart';
 import '../data/DataController.dart';
 
 class SettingModal extends StatefulWidget {
