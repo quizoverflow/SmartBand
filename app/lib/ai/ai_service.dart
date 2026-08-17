@@ -1,6 +1,9 @@
 import 'package:openai_dart/openai_dart.dart';
 
+import '../data/DataController.dart';
+
 // 생성형 ai 로 러닝 데이터 분석 답변 받아오는 싱글톤 객체
+// 사용하기전에 객체 생성한 후, AI.initialize() 꼭 실행해줘야함.
 class AI {
   AI._internal();
 
@@ -28,8 +31,12 @@ class AI {
   - 해요체로 답변할 것
   ''';
 
-  void initialize({required String apiKey}) {
+  Future<void> initialize() async {
     if (initialized) return;
+    String? apiKey;
+    final Pref pref = Pref();
+    apiKey = await pref.getApiKey();
+    if(apiKey == null || apiKey == "") return;
     _client = OpenAIClient.withApiKey(apiKey);
     initialized = true;
   }
