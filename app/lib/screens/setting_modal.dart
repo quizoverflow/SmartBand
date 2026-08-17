@@ -90,6 +90,24 @@ class _SettingModalState extends State<SettingModal> {
       trailing: ElevatedButton(
         onPressed: () async {
           await DBHelper.resetDatabase();
+          if(!mounted) return;
+          showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text('완료'),
+                content: const Text('데이터 삭제완료'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text('확인'),
+                  ),
+                ],
+              );
+            },
+          );
         },
         child: const Text('삭제'),
       ),
