@@ -4,7 +4,15 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/run_record.dart';
+import '../../meta/app_theme.dart';
 
+// 테스트용 하드 코딩 데이터
+final List<double> temp_data = List.generate(
+  1000,
+      (index) {
+    return 50 + (index % 100).toDouble();
+  },
+);
 
 // 측정값은 record 에 담겨있음
 // 분석해야 함.
@@ -38,7 +46,8 @@ class DetailScreen extends StatelessWidget {
             height: 200,
             title: '케이던스',
             description: '시간에 따른 케이던스 변화',
-            data: (jsonDecode(record['cadenceJson'] as String) as List).map((e) => (e as num).toDouble()).toList(),
+            data : temp_data,
+            // data: (jsonDecode(record['cadenceJson'] as String) as List).map((e) => (e as num).toDouble()).toList(),
           ),
 
           GraphCard(
@@ -142,11 +151,18 @@ class GraphCard extends StatelessWidget {
                     isCurved: false,
 
                     // 1,000개의 점을 모두 그리지 않음
-                    dotData: const FlDotData(
-                      show: false,
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (spot, percent, barData, index) {
+                        return FlDotCirclePainter(
+                          radius: 1.0,
+                          strokeWidth: 0,
+                          color: AppTheme.secondaryColor
+                        );
+                      },
                     ),
 
-                    barWidth: 1.5,
+                    barWidth: 0,
                   ),
                 ],
 
@@ -155,21 +171,57 @@ class GraphCard extends StatelessWidget {
                 ),
 
                 borderData: FlBorderData(
-                  show: true,
+                  show: false,
                 ),
 
-                titlesData: const FlTitlesData(
-                  topTitles: AxisTitles(
+                titlesData:FlTitlesData(
+                  topTitles: const AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: false,
                     ),
                   ),
-                  rightTitles: AxisTitles(
+                  rightTitles: const AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: false,
                     ),
                   ),
-                ),
+
+                  // X축
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 22,
+                      interval: data.length / 10 != 0 ? data.length / 10 : 10,
+                      getTitlesWidget: (value, meta) {
+                        return Text(
+                          value.toInt().toString(),
+                          style: const TextStyle(
+                            fontSize: 9,
+                            color: Colors.grey,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  // Y축
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 35,
+                      interval: 20,
+                      getTitlesWidget: (value, meta) {
+                        return Text(
+                          value.toInt().toString(),
+                          style: const TextStyle(
+                            fontSize: 9,
+                            color: Colors.grey,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                )
               ),
             ),
           ),
