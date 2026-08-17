@@ -1,7 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite/sqflite.dart';
 
 //singleton
 //shared-preference
@@ -18,6 +16,7 @@ class Pref{
     "username" : "String",
     "isDarkMode" : "Bool",
     "isNoticeOn" : "Bool",
+    "apiKey" : "String",
   };
   Future<void> printAll() async{
     pref = await SharedPreferences.getInstance();
@@ -31,8 +30,9 @@ class Pref{
     if (pref.getBool("isFirstRun") ?? true){
       pref.setBool("isDarkMode",false);
       pref.setBool("isNoticeOn",false);
-      pref.setString("username","아무개");
+      pref.setString("username","왜이러닝");
       pref.setBool('isFirstRun', false);
+      pref.setString("apiKey", "");
     }
   }
   //load
@@ -65,6 +65,15 @@ class Pref{
     else if(_dataType[itemName] == "Int"){
       pref.setInt(itemName,value);
     }
+  }
+  ///================ 오직 api key 위한 함수
+  Future<void> updateApiKey(String apiKey) async{
+    pref = await SharedPreferences.getInstance();
+    pref.setString("apiKey",apiKey);
+  }
+  Future<String?> getApiKey() async{
+    pref = await SharedPreferences.getInstance();
+    return pref.getString("apiKey");
   }
 
 }

@@ -16,6 +16,7 @@ class SettingModal extends StatefulWidget {
 class _SettingModalState extends State<SettingModal> {
   Map<String,bool> settings = {"isDarkMode":false,"isNoticeOn":false};
   final Pref pref = Pref();
+  String? _apiKey;
   @override
   void initState(){
     super.initState();
@@ -54,6 +55,7 @@ class _SettingModalState extends State<SettingModal> {
           makeSwitch("다크 모드","isDarkMode"),
           makeSwitch("알림 설정","isNoticeOn"),
           makeDataResetButton(),
+          makeApiKeyTile(context: context),
 
           SizedBox(height: 12),
         ],
@@ -62,6 +64,7 @@ class _SettingModalState extends State<SettingModal> {
   }
   Future<void> _loadSettings() async{
     final prefs = await SharedPreferences.getInstance();
+    _apiKey = await pref.getApiKey();
     setState(() {
       settings.forEach((name,value) async {
         settings[name] = prefs.getBool(name) ?? false;
@@ -113,6 +116,66 @@ class _SettingModalState extends State<SettingModal> {
       ),
     );
   }
+  ListTile makeApiKeyTile({
+    required BuildContext context,
+  }) {
+    return ListTile(
+      leading: const Icon(Icons.key),
+      title: const Text('OpenAI API Key'),
+      subtitle: Text(
+        _apiKey == null || _apiKey == ""
+            ? 'API Key가 설정되지 않았습니다.'
+            : 'API Key가 설정되어 있습니다.',
+      ),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () async {
+        final result = await showDialog<String>(
+          context: context,
+          builder: (context) {
+            final controller = TextEditingController(
+              text: _apiKey ?? '',
+            );
 
+            return AlertDialog(
+              title: const Text('API Key'),
+              content: TextField(
+                controller: controller,
+                obscureText: true,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: 'API Key를 입력하세요',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('취소'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    final value = controller.text.trim();
+
+                    if (value.isEmpty) {
+                      return;
+                    }
+
+                    Navigator.pop(context, value);
+                  },
+                  child: const Text('저장'),
+                ),
+              ],
+            );
+          },
+        );
+
+        if (result != null && result.isNotEmpty) {
+          pref.updateApiKey(result);
+        }
+      },
+    );
+  }
 }
 
