@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import '../../ai/ai_service.dart';
 import '../../data/run_record.dart';
 import '../../meta/app_theme.dart';
 
@@ -87,7 +88,7 @@ class TimePoint {
 }
 
 
-class GraphCard extends StatelessWidget {
+class GraphCard extends StatefulWidget {
   final double height;
   final String title;
   final String description;
@@ -102,7 +103,22 @@ class GraphCard extends StatelessWidget {
   });
 
   @override
+  State<GraphCard> createState() => _GraphCardState();
+}
+
+class _GraphCardState extends State<GraphCard> {
+  late String _descriptionText;
+  bool _isLoading = false; // 답변 생성중인지
+
+  @override
+  void initState(){
+    super.initState();
+    _descriptionText = widget.description;
+  }
+
+  @override
   Widget build(BuildContext context) {
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(
@@ -126,7 +142,7 @@ class GraphCard extends StatelessWidget {
         children: [
           // 그래프 제목
           Text(
-            title,
+            widget.title,
             style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
@@ -138,14 +154,14 @@ class GraphCard extends StatelessWidget {
           // 그래프
           SizedBox(
             width: double.infinity,
-            height: height,
+            height: widget.height,
             child: LineChart(
               LineChartData(
                 lineBarsData: [
                   LineChartBarData(
                     spots:[
-                      for(int i = 0; i < data.length; i++)
-                        FlSpot(i.toDouble(), data[i]),
+                      for(int i = 0; i < widget.data.length; i++)
+                        FlSpot(i.toDouble(), widget.data[i]),
                     ],
 
                     isCurved: false,
@@ -191,7 +207,7 @@ class GraphCard extends StatelessWidget {
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 22,
-                      interval: data.length / 10 != 0 ? data.length / 10 : 10,
+                      interval: widget.data.length / 10 != 0 ? widget.data.length / 10 : 10,
                       getTitlesWidget: (value, meta) {
                         return Text(
                           value.toInt().toString(),
@@ -236,16 +252,59 @@ class GraphCard extends StatelessWidget {
               color: Colors.grey.shade100,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Text(
-              description,
-              style: const TextStyle(
-                fontSize: 12,
-                height: 1.5,
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  "안녕\n세상\n테스트",
+                  // _descriptionText,
+                  softWrap: true,
+                  style: const TextStyle(
+                    fontSize : 15,
+                    letterSpacing: 0
+                  ),
+                ),
+                ElevatedButton(
+                  // onPressed: _askDebug,
+                  onPressed: _isLoading ? null : _askAI,
+                  child: const Text("AI 물어보기",),
+
+                ),
+              ],
             ),
           ),
+
         ],
       ),
     );
+  }
+  Future<void> _askDebug() async{
+    AI.instance.initialize();
+    setState(() async {
+      _descriptionText = await AI.instance.ask("안녕 디버깅 중이야");
+    });
+  }
+  Future<void> _askAI() async{
+    setState(() {
+      _descriptionText = '';
+      _isLoading = true;
+    });
+    try {
+      await for (final text in AI.instance.askStream(
+        '케이던스 평균 155',
+      )) {
+        if (!mounted) return;
+
+        setState(() {
+          _descriptionText += text;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 }

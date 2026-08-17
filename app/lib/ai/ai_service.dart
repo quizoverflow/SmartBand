@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:openai_dart/openai_dart.dart';
 
 import '../data/DataController.dart';
@@ -18,7 +19,7 @@ class AI {
     "mindlogic" : "https://factchat-cloud.mindlogic.ai/v1/gateway"
   };
   static final Map<String,String> aiModel = {
-    "basic1" : "google/gemma-4-31B-it",
+    "basic1" : "gpt-5.6-luna",
     "basic2" : "gpt-5.4-nano"
   };
 
@@ -31,13 +32,29 @@ class AI {
   - 해요체로 답변할 것
   ''';
 
+  void logRed(String message) {
+    debugPrint('\x1B[31m$message\x1B[0m');
+  }
+
+  void logGreen(String message) {
+    debugPrint('\x1B[32m$message\x1B[0m');
+  }
+
   Future<void> initialize() async {
     if (initialized) return;
     String? apiKey;
     final Pref pref = Pref();
     apiKey = await pref.getApiKey();
     if(apiKey == null || apiKey == "") return;
-    _client = OpenAIClient.withApiKey(apiKey);
+    logRed("==================\n\n\n\n\n");
+    logGreen(apiKey);
+
+    _client = OpenAIClient(
+      config: OpenAIConfig(
+        authProvider: ApiKeyProvider(apiKey),
+        baseUrl: "https://factchat-cloud.mindlogic.ai/v1/gateway"
+      )
+    );
     initialized = true;
   }
 
@@ -57,6 +74,29 @@ class AI {
     );
 
     return response.outputText;
+  }
+  /// 답변이 촤라라락
+  Stream<String> askStream(String question) async* {
+    if (!initialized) {
+      throw StateError(
+        'AI 초기화 안됨 AI.instance.initialize() 필요 ',
+      );
+    }
+    try {
+      final stream = _client.responses.createStream(
+        CreateResponseRequest(
+          model: aiModel["basic1"]!,
+          instructions: _systemPrompt,
+          input: ResponseInput.text(question),
+          stream: true,
+        ),
+      );
+      await for (final delta in stream.textDeltas()) {
+        yield delta;
+      }
+    } catch (e,stackTree) {
+      //
+    }
   }
 
   void dispose() {

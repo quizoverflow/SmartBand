@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app/meta/theme_provider.dart';
+import '../ai/ai_service.dart';
 import '../data/DataController.dart';
 
 class SettingModal extends StatefulWidget {
@@ -160,7 +161,7 @@ class _SettingModalState extends State<SettingModal> {
                     if (value.isEmpty) {
                       return;
                     }
-
+                    AI.instance.initialize();
                     Navigator.pop(context, value);
                   },
                   child: const Text('저장'),

@@ -6,6 +6,8 @@ import 'package:app/screens/setting_modal.dart';
 import 'package:app/screens/utility/db_helper.dart';
 import 'package:flutter/material.dart';
 
+import '../ai/ai_service.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     _loadUserInfo();
     _recordsFuture = _loadRecords();
-
+    AI.instance.initialize();
 
     // 탭 전환 완료 시 자동 새로고침
     _tabController.addListener(() {

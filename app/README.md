@@ -1,8 +1,11 @@
 ### WayRunning 시스템 어플리케이션
 ---
 #### 향후 개발 필요사항
-1. 러닝 정보 분석
-screen_record -> screen_detail 에서
+
+1. ai 연동 => screen_detail.dart => GraphCard 위젯을 Stateful
+위젯으로 바꿔야함
+
+
 ---
 #### Features
 
