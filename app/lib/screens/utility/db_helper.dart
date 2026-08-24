@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:app/screens/utility/format.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -46,32 +47,42 @@ class DBHelper {
     required int pointCount,
     required int runningTime,
     required List<Map<String, double>> pathData,
-    required List<double>? impactData,
-    required List<double>? cadenceData,
-    required List<double>? groundTimeData,
-    required List<double>? balanceData
+    required List<num>? impactData,     // double/int 모두 수용하도록 num으로 설정
+    required List<num>? cadenceData,    // double/int 모두 수용하도록 num으로 설정
+    required List<num>? groundTimeData, // double/int 모두 수용하도록 num으로 설정
+    required List<num>? balanceData,    // double/int 모두 수용하도록 num으로 설정
   }) async {
-    final db = await database;
+    try {
+      final db = await database;
 
-    // 좌표 리스트를 JSON 문자열로 변환하여 저장
-    final String pathJson = jsonEncode(pathData);
-    final String? impactJson = impactData != null ? jsonEncode(impactData) : null;
-    final String? cadenceJson = cadenceData != null ? jsonEncode(cadenceData) : null;
-    final String? groundTimeJson = groundTimeData != null ? jsonEncode(groundTimeData) : null;
-    final String? balanceJson = balanceData != null ? jsonEncode(balanceData) : null;
+      // 좌표 리스트 및 센서 리스트를 JSON 문자열로 변환
+      final String pathJson = jsonEncode(pathData);
+      final String? impactJson = impactData != null ? jsonEncode(impactData) : null;
+      final String? cadenceJson = cadenceData != null ? jsonEncode(cadenceData) : null;
+      final String? groundTimeJson = groundTimeData != null ? jsonEncode(groundTimeData) : null;
+      final String? balanceJson = balanceData != null ? jsonEncode(balanceData) : null;
 
-    return await db.insert('records', {
-      'runningTime' : runningTime,
-      'distanceKm': distanceKm,
-      'pointCount': pointCount,
-      'pathJson': pathJson,
-      'createdAt': formatDateTime(DateTime.now()),
-      'impactJson' : impactJson,
-      'cadenceJson' : cadenceJson,
-      'groundTimeJson' : groundTimeJson,
-      'balanceJson' : balanceJson,
-    });
+      final id = await db.insert('records', {
+        'runningTime': runningTime,
+        'distanceKm': distanceKm,
+        'pointCount': pointCount,
+        'pathJson': pathJson,
+        'createdAt': formatDateTime(DateTime.now()),
+        'impactJson': impactJson,
+        'cadenceJson': cadenceJson,
+        'groundTimeJson': groundTimeJson,
+        'balanceJson': balanceJson,
+      });
+
+      debugPrint('✅ [DB 저장 성공] Record ID: $id');
+      return id;
+    } catch (e, stackTrace) {
+      debugPrint('❌ [DB 저장 실패 에러]: $e');
+      debugPrint('StackTrace: $stackTrace');
+      return -1;
+    }
   }
+
 
   /// 저장된 모든 러닝 기록 조회 (최신순)
   static Future<List<Map<String, dynamic>>> getRecords() async {

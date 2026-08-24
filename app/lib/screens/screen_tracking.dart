@@ -103,7 +103,6 @@ class _TrackingScreenState extends State<TrackingScreen> {
     _timer?.cancel();
     _stopwatch.stop();
     int runningTime = _stopwatch.elapsedMilliseconds ~/ 1000;
-
     // 결과 화면으로 이동하며 현 화면 교체
     Navigator.pushReplacement(
       context,
@@ -433,9 +432,11 @@ Future<int> saveTrackingDataToDB(
       }
     }
   }
+  else{
+    avg = longer;
+  }
 
   // DB에 저장
-  // 일단 러닝 시간은 나중에 구현
   return await DBHelper.insertRecord(
     runningTime: runningTime,
     distanceKm: distanceInKm,

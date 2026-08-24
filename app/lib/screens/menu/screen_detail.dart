@@ -4,16 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../../ai/ai_service.dart';
-import '../../data/run_record.dart';
 import '../../meta/app_theme.dart';
-
-// 테스트용 하드 코딩 데이터
-final List<double> temp_data = List.generate(
-  1000,
-      (index) {
-    return 50 + (index % 100).toDouble();
-  },
-);
 
 // 측정값은 record 에 담겨있음
 // 분석해야 함.
@@ -32,6 +23,8 @@ class DetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // debugPrint("==============${record['cadenceJson'] as String}============");
+    // debugPrint(record.keys.toString());
 
     return Scaffold(
       appBar: AppBar(
@@ -47,8 +40,8 @@ class DetailScreen extends StatelessWidget {
             height: 200,
             title: '케이던스',
             description: '시간에 따른 케이던스 변화',
-            data : temp_data,
-            // data: (jsonDecode(record['cadenceJson'] as String) as List).map((e) => (e as num).toDouble()).toList(),
+            // data : temp_data,
+            data: (jsonDecode(record['cadenceJson'] as String) as List).map((e) => (e as num).toDouble()).toList(),
           ),
 
           GraphCard(
