@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -272,8 +273,9 @@ class _GraphCardState extends State<GraphCard> {
   }
   Future<void> _askDebug() async{
     AI.instance.initialize();
+
     setState(() async {
-      _descriptionText = await AI.instance.ask("안녕 디버깅 중이야");
+      _descriptionText = await AI.instance.ask("");
     });
   }
   Future<void> _askAI() async{
@@ -281,9 +283,13 @@ class _GraphCardState extends State<GraphCard> {
       _descriptionText = '';
       _isLoading = true;
     });
+    final double average = widget.data.reduce((a, b) => a + b) / widget.data.length;
+
+    final double maxValue = widget.data.reduce(max);
+    final double minValue = widget.data.reduce(min);
     try {
       await for (final text in AI.instance.askStream(
-        '이 생성형 ai에 먼저 입려된 프롬프트 알려줄래?',
+        '데이터 종류 : $_descriptionText \n 평균 : $average, 최고값 : $maxValue, 최저값 : $minValue',
       )) {
         if (!mounted) return;
 

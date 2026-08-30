@@ -404,7 +404,7 @@ Future<int> saveTrackingDataToDB(
       .map((point) => {'lat': point.latitude, 'lng': point.longitude})
       .toList();
   // ======= 블루투스 수신 정보 left, right 평균화 =====
-  // 두 데이터의 수신 정보 차이가 더 많은 쪽의 데이터 사이즈 * 0.2 보다 크면 계산을 취소
+  // 두 데이터의 수신 정보 차이가 더 많은 쪽의 데이터 사이즈 * 0.5 보다 크면 계산을 취소
   List<RunningPacket> avg = [];
   List<double> balance = [];
   final List<RunningPacket> longer,shorter;
@@ -414,7 +414,7 @@ Future<int> saveTrackingDataToDB(
   else{
     longer = right; shorter = left;
   }
-  if((left.length - right.length).abs() < 0.2 * longer.length){
+  if((left.length - right.length).abs() < 0.5 * longer.length){
     int indexLong = 0 , indexShort = 0;
     while(indexLong < longer.length && indexShort < shorter.length){
       int packetNumLong = longer[indexLong].packetNumber;

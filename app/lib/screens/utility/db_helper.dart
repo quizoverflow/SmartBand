@@ -40,6 +40,32 @@ class DBHelper {
       },
     );
   }
+  
+  //이상치 제거
+  static void replaceAbnormalValues(List<num>? dataList, int max, int min) {
+    if (dataList == null || dataList.isEmpty) {
+      return;
+    }
+    for (int i = 0; i < dataList.length; i++) {
+      final value = dataList[i];
+
+      // 200 초과 또는 150 미만이면 이상값
+      if (value > max || value < min) {
+        if (i == 0) {
+          // 첫 번째 값이 이상하면 두 번째 값으로 대체
+          if (dataList.length > 1) {
+            dataList[i] = dataList[i + 1];
+          }
+        } else if (i == dataList.length - 1) {
+          // 마지막 값이 이상하면 직전 값으로 대체
+          dataList[i] = dataList[i - 1];
+        } else {
+          // 중간 값이 이상하면 앞/뒤 값의 평균
+          dataList[i] = (dataList[i - 1] + dataList[i + 1]) / 2;
+        }
+      }
+    }
+  }
 
   /// 러닝 기록 DB 저장
   static Future<int> insertRecord({
@@ -54,6 +80,11 @@ class DBHelper {
   }) async {
     try {
       final db = await database;
+
+      replaceAbnormalValues(cadenceData,200,150);
+      // replaceAbnormalValues(impactData,200,150);
+      replaceAbnormalValues(groundTimeData,150,100);
+      // replaceAbnormalValues(balanceData,200,150);
 
       // 좌표 리스트 및 센서 리스트를 JSON 문자열로 변환
       final String pathJson = jsonEncode(pathData);
