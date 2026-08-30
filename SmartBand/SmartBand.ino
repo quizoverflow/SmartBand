@@ -24,14 +24,14 @@ void setup() {
 
 void loop() {
   // PC 파이썬 연결 시 전송되는 시작/초기화 명령('S') 수신
-  if (connection.available()) {
-      char cmd = connection.read();
-      if (cmd == 'S' || cmd == 'R') {
-          stepAnalyzer.reset();
-          packetNumber = 0;
-          connection.send_start(); // PC에 준비 완료 응답
-      }
-  }
+  // if (connection.available()) {
+  //     char cmd = connection.read();
+  //     if (cmd == 'S' || cmd == 'R') {
+  //         stepAnalyzer.reset();
+  //         packetNumber = 0;
+  //         connection.send_start(); // PC에 준비 완료 응답
+  //     }
+  // }
 
   unsigned long current = micros();
   if (current - lastSampleTime < sampleInterval) return;
