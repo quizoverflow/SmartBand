@@ -165,7 +165,7 @@ class _GraphCardState extends State<GraphCard> {
                       show: true,
                       getDotPainter: (spot, percent, barData, index) {
                         return FlDotCirclePainter(
-                          radius: 1.0,
+                          radius: 2.0,
                           strokeWidth: 0,
                           color: AppTheme.secondaryColor
                         );
@@ -176,10 +176,17 @@ class _GraphCardState extends State<GraphCard> {
                   ),
                 ],
 
-                gridData: const FlGridData(
+                gridData: FlGridData(
                   show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: 10,
+                  getDrawingHorizontalLine: (value) {
+                    return FlLine(
+                      color: Colors.grey.withOpacity(0.12),
+                      strokeWidth: 1,
+                    );
+                  },
                 ),
-
                 borderData: FlBorderData(
                   show: false,
                 ),
@@ -280,7 +287,7 @@ class _GraphCardState extends State<GraphCard> {
   }
   Future<void> _askAI() async{
     setState(() {
-      _descriptionText = '';
+      _descriptionText = widget.description;
       _isLoading = true;
     });
     final double average = widget.data.reduce((a, b) => a + b) / widget.data.length;

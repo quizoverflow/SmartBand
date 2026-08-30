@@ -423,6 +423,8 @@ Future<int> saveTrackingDataToDB(
       if(packetNumShort == packetNumLong){
         avg.add(longer[indexLong].getAvg(shorter[indexShort]));
         balance.add(longer[indexLong].getBalanceScore(shorter[indexShort]));
+        indexLong++;
+        indexShort++;
       }
       else if(packetNumShort > packetNumLong){
         indexLong++;
