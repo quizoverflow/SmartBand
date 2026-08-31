@@ -40,3 +40,4 @@ flutter:
   assets:
     - asset/img/
     - asset/img_debug/
+    - asset/sound/

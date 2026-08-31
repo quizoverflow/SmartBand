@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:app/screens/utility/audio_manager.dart';
 import 'package:app/screens/utility/bluetooth_manager.dart';
 import 'package:app/screens/utility/bluetooth_tracking.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,13 @@ import 'package:permission_handler/permission_handler.dart';
 import 'utility/db_helper.dart';
 
 // ======================
-// GPS 가동 화면 (위치 추적 화면)
+// 러닝 중 보여지는 스크린
+// 기능 총 3가지
+// 1. 블루투스 연결 상태 시각적확인 (정보량 표시)
+// 2. 러닝 시간 타이머
+// 3. 기록종료 버튼
+// 4. 현재 위치
+// 5. 경고 음성 장치 (스크린 표시는 아님)
 // =====================
 class TrackingScreen extends StatefulWidget {
   const TrackingScreen({super.key});
@@ -200,6 +207,15 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
             // 블루투스 모니터링 위젯. 모니터링 뿐만 아니라 데이터 저장/계산도 수행함
             RunningMonitor(left: left,right : right),
+
+            // 음성 장치 디버깅용 버튼 위젯 (추후 삭제필요)
+
+            ElevatedButton(
+                onPressed: (){
+                  AudioManager.instance.playSoundWarningBoth();
+                }, child: null,
+            ),
+
           ],
         ),
       ),
