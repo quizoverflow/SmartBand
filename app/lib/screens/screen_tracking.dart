@@ -40,6 +40,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
   //경고 음성 켜고 끄기
   bool isSoundOn = true;
+  /// 경고 peak threshold
+  double warningThreshold = 240.0;
 
   @override
   void initState() {
@@ -48,6 +50,32 @@ class _TrackingScreenState extends State<TrackingScreen> {
     // 페이지 로드되자마자 바로 시작. 추후 변경될 수 있음
     _stopwatch.start();
     _timer = Timer.periodic(const Duration(milliseconds: 100),(timer){
+
+      /// 여기서 좌우 충격량 검사 후 필요시 음성으로 경고
+      double left_avg = 0, right_avg = 0;
+      if(left.length>= 2){
+        left_avg = (left[left.length - 2].peak + left[left.length -1].peak) / 2;
+      }
+      else{
+        left_avg = 0;
+      }
+      if(right.length>= 2){
+        left_avg = (right[right.length - 2].peak + right[right.length -1].peak) / 2;
+      }
+      else{
+        right_avg = 0;
+      }
+      /// 경고
+      if(left_avg > warningThreshold && right_avg > warningThreshold){
+        AudioManager.instance.playSoundWarningBoth();
+      }
+      else if(left_avg > warningThreshold){
+        AudioManager.instance.playSoundWarningLeft();
+      }
+      else if(right_avg > warningThreshold){
+        AudioManager.instance.playSoundWarningRight();
+      }
+
       if(mounted){
         setState(() {});
       }
