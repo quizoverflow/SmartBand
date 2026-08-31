@@ -38,6 +38,9 @@ class _TrackingScreenState extends State<TrackingScreen> {
   final Stopwatch _stopwatch = Stopwatch();
   Timer? _timer;
 
+  //경고 음성 켜고 끄기
+  bool isSoundOn = true;
+
   @override
   void initState() {
     super.initState();
@@ -208,13 +211,22 @@ class _TrackingScreenState extends State<TrackingScreen> {
             // 블루투스 모니터링 위젯. 모니터링 뿐만 아니라 데이터 저장/계산도 수행함
             RunningMonitor(left: left,right : right),
 
-            // 음성 장치 디버깅용 버튼 위젯 (추후 삭제필요)
-
+            // 음성 끄고 켜기 버튼
             ElevatedButton(
-                onPressed: (){
-                  AudioManager.instance.playSoundWarningBoth();
-                }, child: null,
-            ),
+              onPressed: (){
+                setState(() {
+                  // 상태 변경
+                  isSoundOn = !isSoundOn;
+                  if(isSoundOn){
+                    AudioManager.instance.setSoundEnabled();
+                  }
+                  else{
+                    AudioManager.instance.setSoundDisabled();
+                  }
+                });
+              },
+              child: Text(isSoundOn? '경고음 활성' : '경고음 비활성'),
+            )
 
           ],
         ),
